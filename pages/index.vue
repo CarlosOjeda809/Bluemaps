@@ -1,14 +1,9 @@
 <script setup>
-import { ref, onMounted } from 'vue'
 import LeafletMap from '@/components/leafletmap.vue'
 
 const pageLoaded = ref(false)
+pageLoaded.value = true
 
-onMounted(() => {
-    setTimeout(() => {
-        pageLoaded.value = true
-    }, 300)
-})
 </script>
 
 <template>
@@ -60,15 +55,3 @@ onMounted(() => {
   </div>
 </template>
 
-<style>
-
-
-
-</style>
-
-<style>
-
-
-
-
-</style>
