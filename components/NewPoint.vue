@@ -4,7 +4,7 @@ const client = useSupabaseClient();
     const props = defineProps({
         isOpen: { type: Boolean, required: true },
         coords: { required: true }
-    });
+    }); 
 
     const emit = defineEmits(['close', 'add'])
 
