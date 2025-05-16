@@ -2,11 +2,10 @@
 import { ref, onMounted, computed, nextTick } from 'vue';
 import { LMap, LTileLayer, LMarker, LPopup } from '@vue-leaflet/vue-leaflet';
 import L from 'leaflet';
-import { CRUD } from '@/composables/CRUD';
-import { search } from '@/composables/Search';
-import { handlers } from '@/composables/handlers';
 import 'leaflet/dist/leaflet.css';
-import DataWeather from './DataWeather.vue';
+
+const client = useSupabaseClient();
+const user = useSupabaseUser();
 
 const addNewPoint = ref(false)
 const newPointCoords = ref(null)
@@ -15,10 +14,13 @@ const center = ref([40.416775, -3.703790]);
 const zoom = ref(13);
 const activeLocation = ref(0);
 const showSidebar = ref(true);
+const isCreatingNew = ref(false);
 const locations = ref([]);
 const mapInstance = ref(null);
 const searchInput = ref('');
-const activeLocationData = ref(null);
+const placesService = ref(null);
+const mapReady = ref(false);
+const searchResults = ref([]);
 const config = useRuntimeConfig();
 const mapOptions = {
     zoomControl: false,
@@ -27,23 +29,8 @@ const mapOptions = {
 
 
 
-const {
-    getLocations,
-    selectLocation,
-    deleteLocation,
-} = CRUD();
 
-const {
-    searchPlaces,
-    clearSearchResults
-} = search();
-
-const {
-    handleContextMenu,
-    handleMapReady
-} = handlers(); ç
-
-const mapskey = config.public.MAPS_KEY
+const mapskey = config.public.mapsKey;
 
 const loadGoogleMaps = async () => {
     return new Promise((resolve) => {
@@ -61,20 +48,157 @@ const loadGoogleMaps = async () => {
     });
 };
 
-function selectLocation(index) {
+const getLocations = async () => {
+    const { data: dataLocation, error: errorLocation } = await client
+        .from('locations')
+        .select('*');
+
+    if (errorLocation) {
+        console.error('Error al obtener ubicaciones:', errorLocation);
+
+        return;
+    }
+
+    locations.value = dataLocation
+
+
+    if (locations.value.length > 0) {
+
+        if (activeLocation.value < 0 || activeLocation.value >= locations.value.length) {
+            activeLocation.value = 0;
+        }
+
+    } else {
+        activeLocation.value = -1;
+    }
+};
+
+const selectLocation = (index) => {
     activeLocation.value = index;
+    center.value = [locations.value[index].latX, locations.value[index].lonY];
+    zoom.value = 15;
+};
 
+
+
+const weatherInfo = ref({
+    temp: '22°C',
+    condition: 'Soleado',
+    humidity: '45%',
+    wind: '12 km/h'
+});
+
+const activeLocationData = computed(() => {
+    return locations.value[activeLocation.value];
+});
+
+
+
+const deleteLocation = async () => {
+    const locationToDelete = locations.value[activeLocation.value];
+
+    if (locationToDelete) {
+        const { error } = await client
+            .from('locations')
+            .delete()
+            .eq('id', locationToDelete.id);
+
+        if (error) {
+            console.error('Error al eliminar la ubicación:', error);
+            alert('Error al eliminar la ubicación. Inténtalo de nuevo.');
+            return;
+        }
+
+        await getLocations();
+
+        if (locations.value.length > 0) {
+            selectLocation(0);
+        } else {
+            activeLocation.value = null;
+        }
+    }
 }
 
-function deleteActiveLocation() {
-    activeLocationData.value = null;
-}
+const handleContextMenu = (event) => {
+    newPointCoords.value = [event.latlng.lat, event.latlng.lng];
+    addNewPoint.value = true;
+};
+
+const handleMapReady = async (map) => {
+    if (!mapInstance.value || typeof mapInstance.value !== 'object') {
+        mapInstance.value = {};
+    }
+    mapInstance.value.mapObject = map;
+    mapReady.value = true;
+
+    await loadGoogleMaps();
+
+    if (window.google && window.google.maps && window.google.maps.places && placesContainer.value) {
+        placesService.value = new window.google.maps.places.PlacesService(placesContainer.value);
+    } else {
+        placesService.value = null;
+    }
+};
+
+
+const clearSearchResults = () => {
+    if (mapInstance.value && mapInstance.value.mapObject) {
+        searchResults.value.forEach(marker => {
+            mapInstance.value.mapObject.removeLayer(marker);
+        });
+        searchResults.value = [];
+    }
+};
+
+
+const searchPlaces = async () => {
+
+    if (!mapReady.value || !mapInstance.value || !mapInstance.value.mapObject) {
+        alert('El mapa no está listo. Por favor, intenta de nuevo en unos segundos.');
+        return;
+    }
+    if (!placesService.value) {
+        alert('No se pudo inicializar el servicio de búsqueda. Por favor, recarga la página.');
+        return;
+    }
+    if (!searchInput.value.trim()) {
+        return;
+    }
+    clearSearchResults();
+    const request = {
+        query: searchInput.value,
+        fields: ['name', 'geometry', 'formatted_address']
+    };
+    placesService.value.textSearch(request, (results, status) => {
+        if (status === window.google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
+            const bounds = L.latLngBounds();
+            results.forEach(place => {
+                if (place.geometry && place.geometry.location) {
+                    const lat = place.geometry.location.lat();
+                    const lng = place.geometry.location.lng();
+                    console.log(place.geometry.location)
+                    bounds.extend([lat, lng]);
+                }
+            });
+            if (bounds.isValid()) {
+                mapInstance.value.mapObject.fitBounds(bounds, {
+                    padding: [50, 50],
+                    maxZoom: 15
+                });
+            }
+        } else {
+            alert('No se encontraron resultados para tu búsqueda.');
+        }
+    });
+
+};
 
 onMounted(async () => {
 
     await handleMapReady()
     await getLocations();
     await loadGoogleMaps();
+
     document.head.appendChild(document.createElement('link')).href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css';
 
 });
@@ -86,15 +210,65 @@ onMounted(async () => {
             class="bg-gradient-to-b from-green-500 to-green-800 text-white shadow-lg z-10 transition-all duration-300">
             <div v-if="showSidebar" class="p-5 h-full overflow-y-auto">
                 <h2 class="text-2xl font-bold m-5 text-center pb-2 border-b border-white/20">Explora España</h2>
+
                 <DataWeather />
-                <LocationsDetails :locations="locations" :activeLocation="activeLocation" @select="selectLocation" />
+
+                <div class="py-5 mb-10">
+                    <h3 class="text-lg font-medium mb-3">Lugares destacados</h3>
+                    <div v-for="(location, index) in locations" :key="location.id" :class="[
+                        'bg-white/10 rounded-lg p-4 mb-4 cursor-pointer transition-all hover:bg-white/20 hover:-translate-y-1',
+                        { 'border-l-4 border-green-300 bg-white/20': activeLocation === index },
+                    ]" @click="selectLocation(index)">
+                        <div class="relative mb-3">
+                            <img :src="location.image" :alt="location.name"
+                                class="w-full h-32 object-cover rounded-md" />
+                        </div>
+                        <div>
+                            <div class="flex items-center justify-between">
+                                <h4 class="font-bold text-base mb-1">{{ location.name }}</h4>
+
+                            </div>
+                            <div class="flex items-center mb-2">
+                                <span class="text-yellow-400 mr-1 tracking-tighter">★★★★★</span>
+                                <span class="text-sm">{{ location.rating }}/5</span>
+                            </div>
+                            <p class="text-sm opacity-90">{{ location.description }}</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </aside>
 
         <div class="flex-1 flex flex-col mb-10 mt-5">
             <div v-if="activeLocationData" class="bg-white p-4 border-b border-gray-200 shadow-sm">
-                <ActiveLocationData :activeLocationData="activeLocationData" @delete="handleDeleteActiveLocation"
-                    class="flex-1 relative" />
+                <div class="flex justify-between items-center mb-2">
+                    <div class="flex items-center space-x-2">
+                        <h3 class="text-xl font-bold text-green-700">{{ activeLocationData.name }}</h3>
+                        <div @click="deleteLocation"
+                            class="flex items-center hover:text-white hover:bg-orange-400 transition rounded-lg duration-500 cursor-pointer bg-gray-100 p-1 shadow-md text-md">
+                            <Icon name="material-symbols:delete"></Icon>
+                            <p class="font-semibold">Borrar ubicación activa</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-yellow-500 mr-1 tracking-tighter">★★★★★</span>
+                        <span class="text-sm text-gray-600">{{ activeLocationData.rating }}/5</span>
+                    </div>
+                </div>
+                <p class="text-gray-600 mb-3">{{ activeLocationData.description }}</p>
+                <div class="flex gap-3">
+                    <button
+                        class="bg-green-700 text-white px-4 py-2 rounded-md font-medium text-sm hover:bg-green-800 transition-colors">
+                        Ver detalles
+                    </button>
+                    <button
+                        class="border border-green-700 text-green-700 px-4 py-2 rounded-md font-medium text-sm hover:bg-green-50 transition-colors">
+                        Cómo llegar
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex-1 relative">
                 <div class="absolute top-5 left-5 z-1000 bg-white rounded-md shadow-md p-2">
                     <input type="text" v-model="searchInput" placeholder="Buscar lugares..."
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -144,6 +318,9 @@ onMounted(async () => {
                 </div>
             </div>
         </div>
+
+
+
 
         <div ref="placesContainer" style="display:none"></div>
     </main>

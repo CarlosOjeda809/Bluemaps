@@ -22,7 +22,7 @@ const activeLocationData = computed(() => {
     watch(() => props.isOpen, (isOpen) => {
         if (isOpen) {
             if (props.coords) { newPointCoords.value = props.coords }
-            else { newPointCoords.value = [40.416775, -3.7903790]; }
+            else { newPointCoords.value = [40.416775, -3.703790]; }
             
             newPointName.value = '';
             newPointDescription.value = '';
@@ -56,6 +56,9 @@ const activeLocationData = computed(() => {
     };
 
     const close = () => { emit('close') }
+
+   
+     
 </script>
 
 <template>

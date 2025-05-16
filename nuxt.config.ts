@@ -4,6 +4,8 @@ export default defineNuxtConfig({
     public: {
       supabaseUrl: process.env.SUPABASE_URL || '',
       supabaseKey: process.env.SUPABASE_KEY || '',
+      mapsKey: process.env.MAPS_KEY || '',
+
     }},
     compatibilityDate: '2024-11-01',
     devtools: { enabled: true },

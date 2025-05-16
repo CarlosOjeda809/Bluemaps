@@ -4,9 +4,12 @@ import { defineProps, defineEmits } from 'vue';
 const props = defineProps({
     locations: Array,
     activeLocation: Number
-});
+}); 
 const emit = defineEmits(['select']);
 const selectLocation = (index) => emit('select', index);
+const client = useSupabaseClient();
+
+
 </script>
 
 <template>
