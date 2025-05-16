@@ -1,5 +1,5 @@
 <script setup>
-import LeafletMap from '@/components/leafletmap.vue'
+import LeafletMap from '~/pages/leafletmap.vue'
 
 const pageLoaded = ref(false)
 pageLoaded.value = true

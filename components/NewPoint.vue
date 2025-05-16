@@ -6,6 +6,12 @@ const client = useSupabaseClient();
         coords: { required: true }
     }); 
 
+    
+
+const activeLocationData = computed(() => {
+    return locations.value[activeLocation.value];
+});
+
     const emit = defineEmits(['close', 'add'])
 
     const newPointCoords = ref([null, null]);

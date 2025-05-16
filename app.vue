@@ -1,7 +1,6 @@
 <script setup>
 
 import Navbar from '@/components/navbar.vue';
-import Mavbar from '@/components/navbar.vue';
 
 </script>
 
