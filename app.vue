@@ -1,6 +1,7 @@
 <script setup>
 
-import Navbar from '@/components/navbar.vue';
+import Navbar from '~/components/Navbar.vue';
+import Footer from '~/components/Footer.vue';
 
 </script>
 
@@ -9,5 +10,6 @@ import Navbar from '@/components/navbar.vue';
   <div class="flex-col flex-h-screen">
     <Navbar />
     <NuxtPage class="h-full flex-1"/>
+    <Footer />
   </div>
 </template>
