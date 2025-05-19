@@ -90,6 +90,7 @@ onMounted(async () => {
 </script>
 
 <template>
+    <Navbar />
     <main class="flex bg-gray-50 h-screen">
         <aside
             class="bg-gradient-to-b from-green-500 to-green-800 text-white shadow-lg z-10 transition-all duration-300"
