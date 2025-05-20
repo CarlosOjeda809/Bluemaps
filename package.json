@@ -16,6 +16,7 @@
     "@nuxtjs/supabase": "^1.5.1",
     "@vue-leaflet/vue-leaflet": "^0.10.1",
     "leaflet": "^1.9.4",
+    "leaflet-routing-machine": "^3.2.12",
     "nuxt": "^3.17.3",
     "supabase": "^2.22.12",
     "typescript": "^5.8.3",

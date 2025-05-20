@@ -3,14 +3,7 @@ import { ref, onMounted } from 'vue';
 import { LMap, LTileLayer, LMarker, LPopup } from '@vue-leaflet/vue-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import DataWeather from '~/components/DataWeather.vue';
-import NewPoint from '~/components/NewPoint.vue';
-import NewPointCoords from '~/components/NewPointCoords.vue';
-import LocationCard from '~/components/LocationCard.vue';
-import LocationDetails from '~/components/LocationDetails.vue';
-import SearchBox from '~/components/SearchBox.vue';
-import MapControls from '~/components/MapControls.vue';
-import SidebarHeader from '~/components/SideBarHeader.vue';
+
 
 const { center, zoom, mapInstance, mapReady, mapOptions, handleMapReady } = useMap();
 const { locations, activeLocation, activeLocationData, getLocations, selectLocation, deleteLocation } = useLocation();
@@ -67,7 +60,8 @@ const handleZoomOut = () => {
     zoom.value -= 1;
 };
 
-const handleAddPoint = () => {
+
+const handleAddPointClick = () => {
     manualLocationVisible.value = true;
 };
 
@@ -75,7 +69,7 @@ const handleManualLocationSubmit = (coords) => {
     setNewPointCoords(coords);
     addNewPoint.value = true;
     manualLocationVisible.value = false;
-};
+}
 
 const handleCloseManualInput = () => {
     manualLocationVisible.value = false;
@@ -143,21 +137,20 @@ onMounted(async () => {
                 </ClientOnly>
 
                 <div class="absolute top-5 right-5 z-1000">
-                    <MapControls @zoom-in="handleZoomIn" @zoom-out="handleZoomOut" />
+                    <MapControls @zoom-in="handleZoomIn" @zoom-out="handleZoomOut" @add-point="handleAddPointClick" />
                 </div>
 
-                <NewPoint :is-open="manualLocationVisible" @update:is-open="manualLocationVisible = $event"
-                    @add-point="handleAddPoint" @submit-manual="handleManualLocationSubmit"
-                    @close="handleCloseManualInput" />
+                <NewPoint :is-open="manualLocationVisible" :coords="newPointCoords" @close="handleCloseManualInput"
+                    @add="handleAddLocation" />
+
             </div>
         </div>
 
         <div ref="placesContainer" style="display:none"></div>
     </main>
 
-
-
     <NewPointCoords :is-open="addNewPoint" :coords="newPointCoords" @close="resetNewPoint" @add="handleAddLocation" />
+
 </template>
 
 <style>
