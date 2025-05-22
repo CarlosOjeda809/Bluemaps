@@ -3,6 +3,7 @@
 </script>
 
 <template>
+    <option value="Fuera de España">Fuera de España</option>
     <option value="">Todas las provincias</option>
     <option value=" ">Ninguna</option>
     <option value="Álava">Álava</option>
