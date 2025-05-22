@@ -29,7 +29,7 @@ const truncatedDescription = computed(() => {
 <template>
   <div :class="[
     'bg-white/10 rounded-lg p-4 mb-4 cursor-pointer transition-all hover:bg-white/20 hover:-translate-y-1',
-    { 'border-l-4 border-green-300 bg-white/20': isActive },
+    { 'border-l-4 border-sky-300 bg-white/20': isActive },
   ]" @click="handleSelect">
     <div class="relative mb-3">
       <img :src="location.image" :alt="location.name" class="w-full h-32 object-cover rounded-md" />
@@ -39,7 +39,7 @@ const truncatedDescription = computed(() => {
         <h4 class="font-bold text-base mb-1">{{ location.name }}</h4>
       </div>
       <div class="flex items-center mb-2">
-        <span class="text-yellow-400 mr-1 tracking-tighter">★★★★★</span>
+        <span class="text-amber-400 mr-1 tracking-tighter">★★★★★</span>
         <span class="text-sm">{{ location.rating }}/5</span>
       </div>
       <p class="text-sm opacity-90">{{ truncatedDescription }}</p>

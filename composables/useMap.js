@@ -1,5 +1,5 @@
 export function useMap() {
-  const center = ref([40.416775, -3.703790]);
+  const center = ref([39.473040, -0.371475]);
   const zoom = ref(13);
   const mapInstance = ref(null);
   const mapReady = ref(false);

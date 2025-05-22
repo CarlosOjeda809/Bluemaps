@@ -29,13 +29,15 @@ export function useLocation() {
 
   const selectLocation = (index) => {
     activeLocation.value = index;
-    return [locations.value[index].latX, locations.value[index].lonY];
+    return [locations.value[index].latx, locations.value[index].lony];
   };
 
   const deleteLocation = async () => {
     const locationToDelete = locations.value[activeLocation.value];
 
     if (locationToDelete) {
+      const province = locationToDelete.province;
+
       const { error } = await client
         .from('locations')
         .delete()
@@ -47,12 +49,22 @@ export function useLocation() {
         return false;
       }
 
-      await getLocations();
+      const { data: dataLocation, error: errorLocation } = await client
+        .from('locations')
+        .select('*')
+        .eq('province', province);
+
+      if (errorLocation) {
+        console.error('Error al obtener ubicaciones:', errorLocation);
+        return false;
+      }
+
+      locations.value = dataLocation;
 
       if (locations.value.length > 0) {
         selectLocation(0);
       } else {
-        activeLocation.value = null;
+        activeLocation.value = -1;
       }
       return true;
     }

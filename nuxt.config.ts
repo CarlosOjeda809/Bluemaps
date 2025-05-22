@@ -5,6 +5,7 @@ export default defineNuxtConfig({
       supabaseUrl: process.env.SUPABASE_URL || '',
       supabaseKey: process.env.SUPABASE_KEY || '',
       mapsKey: process.env.MAPS_KEY || '',
+      aemetKey: process.env.AEMET_KEY || ''
 
     }},
     compatibilityDate: '2024-11-01',

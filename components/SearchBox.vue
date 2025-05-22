@@ -34,10 +34,9 @@ const handleKeyUp = (e) => {
       <input type="text" :value="searchInput" @input="updateValue" @keyup="handleKeyUp" placeholder="Buscar lugares..."
         class="shadow appearance-none border rounded w-full p-1 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
       <button @click="handleSearch"
-        class="bg-green-600 hover:bg-green-700 text-white font-bold p-2 justify-center items-center m-1 rounded focus:outline-none focus:shadow-outline transition-colors">
-        <span class="flex">
+        class="bg-blue-600 hover:bg-blue-700 cursor-pointer text-white font-bold p-2 justify-center items-center m-1 rounded focus:outline-none focus:shadow-outline transition-colors">
+        <span class="flex ">
           <Icon name="material-symbols:search"  />
-
         </span>
       </button>
     </div>
